@@ -92,7 +92,7 @@ main,header,footer{position:relative;z-index:1}
 .hero{position:relative;min-height:100svh;display:grid;grid-template-rows:1fr auto;padding:110px var(--margin) 84px;overflow:hidden;isolation:isolate}
 .hero__reel{position:absolute;inset:0;z-index:-1;background:#000 url("assets/video/2886122445156cf371a2e98ba645d687.jpg") 50% 38% / cover no-repeat}   /* a still behind the reel, for phones that refuse to autoplay (battery saver) */
 .hero__reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 38%;opacity:0;transform:scale(1.08);will-change:transform}
-.hero__reel video.is-on{opacity:1}
+.hero__reel video.is-on{opacity:1;transition:opacity .8s}
 /* The reel sits under a dark shade; the mouse opens a soft hole in it (--lx, --ly, --lr are set from the script). */
 .hero__shade{position:absolute;inset:0;background:rgba(30,21,0,.7);
   -webkit-mask-image:radial-gradient(circle var(--lr,0px) at var(--lx,50%) var(--ly,50%),rgba(0,0,0,.45),rgba(0,0,0,.6) 45%,#000 100%);
@@ -134,6 +134,10 @@ main,header,footer{position:relative;z-index:1}
 .about__portrait img{position:absolute;left:-41.16%;bottom:0;width:186.05%;max-width:none;height:auto;transform-origin:50% 100%;mix-blend-mode:multiply;filter:grayscale(1) contrast(1.35) brightness(1.05);transition:translate .6s var(--ease-out);will-change:transform}
 .facts{display:grid;grid-template-columns:repeat(3,1fr);background:#000;color:var(--paper);margin:0 calc(var(--margin) * -1);padding:clamp(28px,4vw,56px) var(--margin);gap:24px}
 .fact__num{display:block;font-weight:700;font-size:clamp(40px,5vw,84px);line-height:1;letter-spacing:-.04em;color:var(--yellow)}
+/* "+10M vistas": the M lands with a small punch once the count reaches 10 */
+.fact__m{display:inline-block;font-weight:700}
+.js .fact__num--views .fact__m{transform:scale(0);transform-origin:20% 85%}
+.js .is-in .fact__num--views .fact__m{transform:none;transition:transform .55s cubic-bezier(.34,1.8,.5,1) .85s}
 .fact__txt{font-family:var(--sans);font-size:15px;line-height:1.45;margin-top:10px;display:block}
 @media (max-width:900px){
   .about__grid{--pw:min(100%,560px);grid-template-columns:1fr;grid-template-rows:auto;row-gap:1em}
@@ -344,8 +348,7 @@ html{-webkit-tap-highlight-color:transparent}
   <!-- HERO -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__reel" aria-hidden="true">
-      <video muted playsinline preload="none" data-src="video/3884012bfdb809b6ba52c65c9b65ba81.mp4" data-cuts="0.5,3.5,7,15.5,23.3,26,28.5"></video>
-      <video muted playsinline preload="none" data-src="video/df81ef9f4efe54831ebb56bd97741121.mp4" data-cuts="2,6.5,14,20,26,32,38"></video>
+      <video muted playsinline loop preload="none" data-src="video/hero-laplanta.mp4"></video>
       <div class="hero__shade"></div>
     </div>
     <h1 class="hero__title" id="hero-title" aria-label="Portfolio de Christophe Mihura, editor de video">
@@ -390,7 +393,7 @@ html{-webkit-tap-highlight-color:transparent}
     </div>
     <div class="facts">
       <div data-reveal><span class="fact__num"><span data-count="4" data-prefix="+">+4</span> años</span><span class="fact__txt">editando full time para marcas, empresas, artistas y creadores.</span></div>
-      <div data-reveal style="--d:90ms"><span class="fact__num">Herramientas</span><span class="fact__txt">Premiere Pro, After Effects y DaVinci Resolve.</span></div>
+      <div data-reveal style="--d:90ms"><span class="fact__num fact__num--views">+<span data-count="10">10</span><b class="fact__m">M</b> vistas</span><span class="fact__txt">sumadas en redes con los videos que edité para marcas, artistas y creadores.</span></div>
       <div data-reveal style="--d:180ms"><span class="fact__num"><span data-count="4">4</span> idiomas</span><span class="fact__txt">Español, portugués e inglés con fluidez; francés avanzado.</span></div>
     </div>
   </section>
@@ -505,7 +508,7 @@ html{-webkit-tap-highlight-color:transparent}
   const CLIPS = {
     music: [
       ['2886122445156cf371a2e98ba645d687','3884012bfdb809b6ba52c65c9b65ba81',34.0,'Contenido con The La Planta'],
-      ['d0f0e5e325f0b8a2f7cbbf7ce4a5080d','5de4d9c23faefe14c6680f48a91bcc3b',71.0,'Contenido con La T y La M'],
+      ['latm-portada','latm-recortado',66.4,'Contenido con La T y La M'],
       ['a86e26201d80eaf7fc9324d654666ae4','df81ef9f4efe54831ebb56bd97741121',42.8,'Ramiro Gómez — <i>60/40</i>'],
     ],
     general: [
@@ -592,34 +595,20 @@ html{-webkit-tap-highlight-color:transparent}
   function sessionStorageGet(k){ try { return sessionStorage.getItem(k); } catch(e){ return null; } }
   function sessionStorageSet(k){ try { sessionStorage.setItem(k,'1'); } catch(e){} }
 
-  // ---- Hero reel: hard cuts between two films, like an edit ----
+  // ---- Hero reel: one film (The La Planta), pre-cut without its black cards, looping ----
   const vids = [...document.querySelectorAll('.hero__reel video')];
   const tc = document.getElementById('tc');
   let reelOn = false;
   function startReel(){
     if (reelOn) return; reelOn = true;
-    vids.forEach(v => { v.muted = v.defaultMuted = true; v.playsInline = true; v.src = A + v.dataset.src; v.preload = 'auto'; });
-    let k = 0, cutIdx = [0, 0], started = false;
-    const cut = () => {
-      if (k > 0 && vids[k % 2].readyState < 2) { vids[k % 2].play().catch(() => {}); return; }   // next film not loaded yet: stay on this one, never flash black
-      const v = vids[k % 2], cuts = v.dataset.cuts.split(',').map(Number);
-      v.currentTime = cuts[cutIdx[k % 2]++ % cuts.length];
-      v.play().catch(() => {});
-      vids.forEach(o => o.classList.toggle('is-on', o === v));
-      vids.forEach(o => { if (o !== v) o.pause(); });
-      k++;
-    };
-    // Phones (iPhone above all) don't load a video until play() is called, so start it right away instead of waiting for it to load.
-    const go = () => { if (started) return; started = true; cut();
-      if (reduce) { vids[0].loop = true; return; }   // "reduce motion" on: one calm shot, no cuts
-      vids[1].play().then(() => vids[1].pause()).catch(() => {});   // wake the second film so the first cut is instant
-      setInterval(() => { if (!document.hidden && heroVisible) cut(); }, 2600); };
-    vids[0].addEventListener('loadeddata', go, { once: true });
-    vids[0].addEventListener('playing', go, { once: true });
-    vids[0].play().catch(() => {});
-    // battery saver can block autoplay: then the reel starts with the first touch on the page
-    const kick = () => { if (vids[0].paused && heroVisible) vids[0].play().then(go).catch(() => {}); };
-    addEventListener('touchstart', kick, { once: true, passive: true });
+    const v = vids[0];
+    v.muted = v.defaultMuted = true; v.playsInline = true; v.loop = true; v.src = A + v.dataset.src; v.preload = 'auto';
+    const show = () => v.classList.add('is-on');
+    v.addEventListener('playing', show, { once: true });
+    // Phones (iPhone above all) don't load a video until play() is called, so call it right away.
+    v.play().catch(() => {});
+    // battery saver can block autoplay: then it starts with the first touch on the page
+    addEventListener('touchstart', () => { if (v.paused && heroVisible) v.play().catch(() => {}); }, { once: true, passive: true });
     const t0 = performance.now();
     const tcTick = () => { const s = (performance.now() - t0) / 1000;
       const f = Math.floor((s % 1) * 25), sec = Math.floor(s) % 60, min = Math.floor(s / 60) % 60;
