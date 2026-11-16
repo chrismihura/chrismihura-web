@@ -176,6 +176,12 @@ main,header,footer{position:relative;z-index:1}
   .cat__wide{grid-template-columns:1fr;margin-top:40px}
 }
 
+/* general opens with a wide clip across both columns; the verticals below keep the usual stagger (right column lower) */
+#general .cat__clips > .clip--h{grid-column:1 / -1;margin-top:0}
+#general .cat__clips > :nth-child(even){margin-top:0}
+#general .cat__clips > :nth-child(odd):not(:first-child){margin-top:clamp(40px,9vw,140px)}
+@media (max-width:900px){#general .cat__clips > :nth-child(odd):not(:first-child){margin-top:56px}}
+
 /* food mixes one horizontal clip with two vertical ones: the wide one sits on top across both columns, the verticals stagger below */
 #food .cat__clips{grid-template-columns:repeat(2,minmax(0,1fr))}
 #food .cat__clips > .clip--h{grid-column:1 / -1;grid-row:1;margin-top:0}
@@ -188,7 +194,7 @@ main,header,footer{position:relative;z-index:1}
 .clip__btn{position:relative;display:block;width:100%;background:var(--paper);padding:clamp(6px,.6vw,10px);transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) rotate(var(--rot));transition:transform .5s var(--ease-out);text-align:left}
 .clip__btn.is-tilting{transition-duration:.15s}
 .clip__frame{display:block;position:relative;overflow:hidden;aspect-ratio:9/16;background:#111}
-.clip--h .clip__frame{aspect-ratio:16/9}
+.clip--h .clip__frame{aspect-ratio:var(--ar,16/9)}   /* --ar: the clip's own shape when it isn't 16:9 */
 .clip__frame img,.clip__frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease-out),opacity .4s}
 .clip__frame video{opacity:0}
 .clip__frame::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.3),transparent 55%);opacity:0;transition:opacity .35s;pointer-events:none}
@@ -419,7 +425,7 @@ html{-webkit-tap-highlight-color:transparent}
     <div class="cat__head">
       <h2 class="cat__title split" id="general-title" data-split>general</h2>
       <p class="cat__lede" data-reveal>Ejemplos generales de mi trabajo para marcas, medios y creadores: versatilidad y coherencia visual en cada proyecto.</p>
-      <p class="cat__meta" data-reveal>Abogacía · Estética · Tecnología · Trading</p>
+      <p class="cat__meta" data-reveal>Gastronomía · Abogacía · Estética · Tecnología · Trading</p>
     </div>
     <div class="cat__clips" data-cat="general"></div>
   </section>
@@ -519,6 +525,7 @@ html{-webkit-tap-highlight-color:transparent}
       ['a86e26201d80eaf7fc9324d654666ae4','df81ef9f4efe54831ebb56bd97741121',42.8,'Ramiro Gómez — <i>60/40</i>'],
     ],
     general: [
+      ['teaser-apertura-portada','teaser-apertura',58.7,'Teaser de apertura','h','1036/720'],   // horizontal, shown wide on top
       ['eaf824bcc8b02f67622b831ef849ea07','a260819c3af914fd4af7b7217b7ae6da',93.6,'Contenido abogacía'],
       ['9d5f48a34adba856878a4262cf9e3d7e','4493e9f508f24a563174d38231771cfa',45.1,'Contenido estética'],
       ['5ee983a4982933c9c047dca7f7d676fe','b0e33da1ecaa2916e43e11d064211678',38.1,'Contenido Apple'],
@@ -541,10 +548,10 @@ html{-webkit-tap-highlight-color:transparent}
   // ---- Build cards ----
   const playlist = [];
   const card = (c, horiz, idx) => {
-    const [poster, mp4, dur, cap, kind] = c; horiz = horiz || kind === 'h';
+    const [poster, mp4, dur, cap, kind, ar] = c; horiz = horiz || kind === 'h';
     const n = playlist.push({ src: A + 'video/' + mp4 + '.mp4', poster: A + 'video/' + poster + '.jpg', cap: cap.replace(/<[^>]+>/g,'') }) - 1;
     const rot = horiz ? 0 : [-1.6, 1.2, -0.8, 1.8][idx % 4];
-    return `<figure class="clip${horiz ? ' clip--h' : ''}" data-reveal style="--d:${idx*90}ms;--rot:${rot}deg">
+    return `<figure class="clip${horiz ? ' clip--h' : ''}" data-reveal style="--d:${idx*90}ms;--rot:${rot}deg${ar ? ';--ar:' + ar : ''}">
       <button class="clip__btn" type="button" data-n="${n}" aria-label="Reproducir: ${cap.replace(/<[^>]+>/g,'')} (${fmt(dur)})">
         <span class="clip__frame">
           <img src="${A}video/${poster}.jpg" alt="" loading="lazy" width="${horiz?1280:720}" height="${horiz?720:1280}">
