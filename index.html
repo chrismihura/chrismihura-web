@@ -176,6 +176,13 @@ main,header,footer{position:relative;z-index:1}
   .cat__wide{grid-template-columns:1fr;margin-top:40px}
 }
 
+/* food mixes one horizontal clip with two vertical ones: the wide one sits on top across both columns, the verticals stagger below */
+#food .cat__clips{grid-template-columns:repeat(2,minmax(0,1fr))}
+#food .cat__clips > .clip--h{grid-column:1 / -1;grid-row:1;margin-top:0}
+#food .cat__clips > :nth-child(1){margin-top:0}
+#food .cat__clips > :nth-child(3){margin-top:clamp(60px,9vw,140px)}
+@media (max-width:900px){#food .cat__clips > :nth-child(3){margin-top:56px}#food .cat__clips{row-gap:28px}}
+
 /* ---------- Clip card (white frame, like the original) ---------- */
 .clip{margin:0;--rot:0deg}
 .clip__btn{position:relative;display:block;width:100%;background:var(--paper);padding:clamp(6px,.6vw,10px);transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) rotate(var(--rot));transition:transform .5s var(--ease-out);text-align:left}
@@ -412,7 +419,7 @@ html{-webkit-tap-highlight-color:transparent}
     <div class="cat__head">
       <h2 class="cat__title split" id="general-title" data-split>general</h2>
       <p class="cat__lede" data-reveal>Ejemplos generales de mi trabajo para marcas, medios y creadores: versatilidad y coherencia visual en cada proyecto.</p>
-      <p class="cat__meta" data-reveal>Estética · Abogacía · Tecnología · Trading</p>
+      <p class="cat__meta" data-reveal>Abogacía · Estética · Tecnología · Trading</p>
     </div>
     <div class="cat__clips" data-cat="general"></div>
   </section>
@@ -430,7 +437,7 @@ html{-webkit-tap-highlight-color:transparent}
     <div class="cat__head" style="grid-column:9 / -1">
       <h2 class="cat__title split" id="food-title" data-split>food</h2>
       <p class="cat__lede" data-reveal>Contenido para negocios gastronómicos: cada producto se vuelve una pieza que despierta apetito. Cada corte transmite sabor, textura y calidez de marca.</p>
-      <p class="cat__meta" data-reveal>Cafetería · Heladería</p>
+      <p class="cat__meta" data-reveal>Cafetería · Restaurante · Heladería</p>
     </div>
     <div class="cat__clips" data-cat="food" style="grid-column:1 / span 7"></div>
   </section>
@@ -512,8 +519,8 @@ html{-webkit-tap-highlight-color:transparent}
       ['a86e26201d80eaf7fc9324d654666ae4','df81ef9f4efe54831ebb56bd97741121',42.8,'Ramiro Gómez — <i>60/40</i>'],
     ],
     general: [
-      ['9d5f48a34adba856878a4262cf9e3d7e','4493e9f508f24a563174d38231771cfa',45.1,'Contenido estética'],
       ['eaf824bcc8b02f67622b831ef849ea07','a260819c3af914fd4af7b7217b7ae6da',93.6,'Contenido abogacía'],
+      ['9d5f48a34adba856878a4262cf9e3d7e','4493e9f508f24a563174d38231771cfa',45.1,'Contenido estética'],
       ['5ee983a4982933c9c047dca7f7d676fe','b0e33da1ecaa2916e43e11d064211678',38.1,'Contenido Apple'],
       ['e9766b2d28e7039327190f905880b9f3','d54bdd6bdece3afd067c3946cb6d9457',33.8,'Contenido trading'],
     ],
@@ -524,7 +531,7 @@ html{-webkit-tap-highlight-color:transparent}
     ],
     food: [
       ['e6c5a5d19caf9c29e1033e3f3c99f74c','d46d1a638573f6d96976762e00eac4d0',24.2,'Contenido cafetería'],
-      ['9fc64d121cd231bb46348e76ad6a160e','3882d715ca3dff70eb11060d83dff696',76.8,'Contenido heladería'],
+      ['restaurante-portada','restaurante',23.9,'Contenido restaurante','h'],   // horizontal: shown wide on top of the section, still 2nd in the player
       ['2fbcb84165b9c28d808645e04c3e3c0e','aed99fdd21f09da4ca5d31335d5d5dda',21.9,'Contenido heladería'],
     ],
   };
@@ -534,7 +541,7 @@ html{-webkit-tap-highlight-color:transparent}
   // ---- Build cards ----
   const playlist = [];
   const card = (c, horiz, idx) => {
-    const [poster, mp4, dur, cap] = c;
+    const [poster, mp4, dur, cap, kind] = c; horiz = horiz || kind === 'h';
     const n = playlist.push({ src: A + 'video/' + mp4 + '.mp4', poster: A + 'video/' + poster + '.jpg', cap: cap.replace(/<[^>]+>/g,'') }) - 1;
     const rot = horiz ? 0 : [-1.6, 1.2, -0.8, 1.8][idx % 4];
     return `<figure class="clip${horiz ? ' clip--h' : ''}" data-reveal style="--d:${idx*90}ms;--rot:${rot}deg">
