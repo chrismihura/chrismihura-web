@@ -210,6 +210,9 @@ main,header,footer{position:relative;z-index:1}
 .clip__dur{position:absolute;right:10px;bottom:10px;font-family:var(--sans);font-size:13px;font-weight:700;padding:5px 9px;background:rgba(0,0,0,.72);color:var(--paper);border-radius:999px;font-variant-numeric:tabular-nums}
 .clip__cap{display:block;margin-top:14px;font-family:var(--serif);font-size:17px;line-height:1.3;color:var(--paper)}
 .clip__cap i{color:var(--muted)}
+.clip__roles{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.clip__roles::before{content:"Hecho por mí";font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);margin-right:4px}
+.clip__roles b{font-family:var(--sans);font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--yellow);color:#000;letter-spacing:.01em}
 
 /* ---------- Contact ---------- */
 .contact{position:relative;padding:clamp(140px,16vw,240px) var(--margin) 40px;overflow:hidden}
@@ -525,7 +528,7 @@ html{-webkit-tap-highlight-color:transparent}
       ['a86e26201d80eaf7fc9324d654666ae4','df81ef9f4efe54831ebb56bd97741121',42.8,'Ramiro Gómez — <i>60/40</i>'],
     ],
     general: [
-      ['teaser-apertura-portada','teaser-apertura',58.7,'Teaser de apertura','h','1036/720'],   // horizontal, shown wide on top
+      ['teaser-apertura-portada','teaser-apertura',58.7,'Teaser de apertura','h','1036/720',['Grabación','Corrección de color','Edición']],   // horizontal, shown wide on top
       ['eaf824bcc8b02f67622b831ef849ea07','a260819c3af914fd4af7b7217b7ae6da',93.6,'Contenido abogacía'],
       ['9d5f48a34adba856878a4262cf9e3d7e','4493e9f508f24a563174d38231771cfa',45.1,'Contenido estética'],
       ['5ee983a4982933c9c047dca7f7d676fe','b0e33da1ecaa2916e43e11d064211678',38.1,'Contenido Apple'],
@@ -548,7 +551,7 @@ html{-webkit-tap-highlight-color:transparent}
   // ---- Build cards ----
   const playlist = [];
   const card = (c, horiz, idx) => {
-    const [poster, mp4, dur, cap, kind, ar] = c; horiz = horiz || kind === 'h';
+    const [poster, mp4, dur, cap, kind, ar, roles] = c; horiz = horiz || kind === 'h';
     const n = playlist.push({ src: A + 'video/' + mp4 + '.mp4', poster: A + 'video/' + poster + '.jpg', cap: cap.replace(/<[^>]+>/g,'') }) - 1;
     const rot = horiz ? 0 : [-1.6, 1.2, -0.8, 1.8][idx % 4];
     return `<figure class="clip${horiz ? ' clip--h' : ''}" data-reveal style="--d:${idx*90}ms;--rot:${rot}deg${ar ? ';--ar:' + ar : ''}">
@@ -560,7 +563,7 @@ html{-webkit-tap-highlight-color:transparent}
           <span class="clip__dur">${fmt(dur)}</span>
         </span>
       </button>
-      <figcaption class="clip__cap">${cap}</figcaption>
+      <figcaption class="clip__cap">${cap}${roles ? `<span class="clip__roles" aria-label="Hecho por mí: ${roles.join(', ')}">${roles.map(r => `<b>${r}</b>`).join('')}</span>` : ''}</figcaption>
     </figure>`;
   };
   document.querySelectorAll('[data-cat]').forEach(box => {
